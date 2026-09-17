@@ -1,0 +1,45 @@
+name: Client-state alias link checks
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  apple:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - {system: iOS, sdk: iphoneos}
+          - {system: iOS, sdk: iphonesimulator}
+          - {system: tvOS, sdk: appletvos}
+          - {system: tvOS, sdk: appletvsimulator}
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+      - name: Configure Apple static lookup link test
+        run: >-
+          cmake -S . -B build -G Xcode
+          -DCMAKE_SYSTEM_NAME=${{ matrix.target.system }}
+          -DCMAKE_OSX_SYSROOT=${{ matrix.target.sdk }}
+          -DCMAKE_OSX_ARCHITECTURES=arm64
+          -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0
+          -DSTATICLIB=ON -DNOX11=ON -DNOEGL=ON -DNO_GBM=ON
+          -DNO_INIT_CONSTRUCTOR=ON -DGL4ES_BUILD_LINK_TEST=ON
+      - run: cmake --build build --config Release --target gl4es_client_state_link -- CODE_SIGNING_ALLOWED=NO
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+      - run: cmake -S . -B build -DSTATICLIB=ON -DNOX11=ON -DNOEGL=ON -DNO_GBM=ON -DNO_INIT_CONSTRUCTOR=ON -DGL4ES_BUILD_LINK_TEST=ON
+      - run: cmake --build build --target gl4es_client_state_link --parallel 4
+      - run: build/link-test/gl4es_client_state_link
