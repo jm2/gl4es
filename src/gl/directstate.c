@@ -368,6 +368,7 @@ void APIENTRY_GL4ES gl4es_glEnableClientStateIndexed(GLenum array, GLuint index)
 }
 #if defined(__APPLE__)
 // Mach-O has no GCC alias attribute: these lookup targets need real definitions.
+/** Forward the indexed enable entry point on Mach-O. */
 void APIENTRY_GL4ES gl4es_glEnableClientStatei(GLenum array, GLuint index) {
     gl4es_glEnableClientStateIndexed(array, index);
 }
@@ -388,6 +389,7 @@ void APIENTRY_GL4ES gl4es_glDisableClientStateIndexed(GLenum array, GLuint index
     }
 }
 #if defined(__APPLE__)
+/** Forward the indexed disable entry point on Mach-O. */
 void APIENTRY_GL4ES gl4es_glDisableClientStatei(GLenum array, GLuint index) {
     gl4es_glDisableClientStateIndexed(array, index);
 }
@@ -650,8 +652,19 @@ AliasExport(void,glMatrixMultTransposef,EXT,(GLenum matrixMode, const GLfloat *m
 AliasExport(void,glMatrixMultTransposed,EXT,(GLenum matrixMode, const GLdouble *m));
 AliasExport(void,glEnableClientStateIndexed,EXT,(GLenum array, GLuint index));
 AliasExport(void,glDisableClientStateIndexed,EXT,(GLenum array, GLuint index));
+#if defined(__APPLE__)
+/** Export the EXT indexed enable entry point on Mach-O. */
+void APIENTRY_GL4ES glEnableClientStateiEXT(GLenum array, GLuint index) {
+    gl4es_glEnableClientStateIndexed(array, index);
+}
+/** Export the EXT indexed disable entry point on Mach-O. */
+void APIENTRY_GL4ES glDisableClientStateiEXT(GLenum array, GLuint index) {
+    gl4es_glDisableClientStateIndexed(array, index);
+}
+#else
 AliasExport_A(void,glEnableClientStatei,EXT,(GLenum array, GLuint index),glEnableClientStateIndexed);
 AliasExport_A(void,glDisableClientStatei,EXT,(GLenum array, GLuint index),glDisableClientStateIndexed);
+#endif
 AliasExport(void,glEnableVertexArray,EXT,(GLuint vaobj, GLenum array));
 AliasExport(void,glDisableVertexArray,EXT,(GLuint vaobj, GLenum array));
 AliasExport(void,glEnableVertexArrayAttrib,EXT,(GLuint vaobj, GLuint index));
