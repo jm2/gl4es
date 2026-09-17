@@ -250,6 +250,24 @@ endif()
 include_directories(include)
 add_subdirectory(src)
 
+option(GL4ES_BUILD_LINK_TEST "Link client-state aliases and the complete procedure lookup table" OFF)
+if(GL4ES_BUILD_LINK_TEST)
+    if(NOT STATICLIB)
+        message(FATAL_ERROR "GL4ES_BUILD_LINK_TEST requires STATICLIB")
+    endif()
+    set_target_properties(GL PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/link-test")
+    add_executable(gl4es_client_state_link tests/client_state_link.c)
+    target_include_directories(gl4es_client_state_link PRIVATE src/gl)
+    target_link_libraries(gl4es_client_state_link GL)
+    if(UNIX AND NOT APPLE)
+        target_link_libraries(gl4es_client_state_link m dl)
+    endif()
+    set_target_properties(gl4es_client_state_link PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/link-test"
+        MACOSX_BUNDLE FALSE
+        XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED "NO")
+endif()
+
 enable_testing()
 
 macro(create_test test_name test_filename calls_count tolerance)
